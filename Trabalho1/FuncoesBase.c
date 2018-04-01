@@ -227,10 +227,48 @@ double DesenfileirarFloat(t_filaFloat * f){
   return RemoveInicioFloat(f->l);
 }
 
-int EstaVaziaFloatFilaFloat(t_filaFloat * f){
+int EstaVaziaFloatFila(t_filaFloat * f){
     return EstaVaziaFloat(f->l);
 }
 //FIM FILA FLOAT
+
+//INICIO FUNCOES PARA DEBUG DO CODIGO
+void ImprimirListaChar(t_listaChar * l){
+  t_elementoChar * atual = l->primeiro;
+  while(atual != NULL){
+    printf("%c\n", atual->dado);
+    atual = atual->proximo;
+  }
+}
+
+void ImprimirFilaChar(t_filaChar * f){
+  ImprimirListaChar(f->l);
+  printf("Fim da Fila de caracter\n");
+}
+
+void ImprimirPilhaChar(t_pilhaChar * p){
+  ImprimirListaChar(p->l);
+  printf("Fim da Pilha de caracter\n");
+}
+
+void ImprimirListaFloat(t_listaFloat * l){
+  t_elementoFloat * atual = l->primeiro;
+  while(atual != NULL){
+    printf("%.2lf\n", atual->dado);
+    atual = atual->proximo;
+  }
+}
+
+void ImprimirFilaFloat(t_filaFloat * f){
+  ImprimirListaFloat(f->l);
+  printf("Fim da Fila de numero\n");
+}
+
+void ImprimirPilhaFloat(t_pilhaFloat * p){
+  ImprimirListaFloat(p->l);
+  printf("Fim da Pilha de numero\n");
+}
+//FIM FUNCOES PARA DEBUG DO CODIGO
 
 int ValidaExpressao(t_filaChar * filaCaracterVerificar){
   char caracter;
@@ -262,9 +300,9 @@ void Menu(t_filaFloat * filaNumerica, t_filaChar * filaCaracter, t_filaFloat * f
   t_filaChar * filaCaracterVerificar = CriaFilaChar();
 
   printf("Digite a expressão que deseja calcular:\n");
-  while(caracter != '\n'){
+  do{
     scanf("%c", &caracter);
-    if(caracter != ' '){
+    if(caracter != ' ' && caracter != '\n'){
       if(caracter >= '0' && caracter <= '9'){
         while(caracter >= '0' && caracter <= '9'){
           valorNumerico = (valorNumerico*10) + caracter - '0';
@@ -272,12 +310,15 @@ void Menu(t_filaFloat * filaNumerica, t_filaChar * filaCaracter, t_filaFloat * f
         }
         EnfileirarFloat(valorNumerico, filaNumerica);
         EnfileirarFloat(NUMERO, filaOrdem);
+        valorNumerico = 0;
+      } 
+      if(caracter != ' ' && caracter != '\n'){
+        EnfileirarChar(caracter, filaCaracterVerificar);
+        EnfileirarChar(caracter, filaCaracter);
+        EnfileirarFloat(CARACTER, filaOrdem);
       }
-      EnfileirarChar(caracter, filaCaracterVerificar);
-      EnfileirarChar(caracter, filaCaracter);
-      EnfileirarFloat(CARACTER, filaOrdem);
     }
-  }
+  }while(caracter != '\n');
   if(ValidaExpressao(filaCaracterVerificar)){
     printf("Expressao Válida\n");
   } else {
@@ -291,6 +332,9 @@ int main(int argc, char const *argv[])
   t_filaFloat* filaOrdem = CriaFilaFloat();
 
   Menu(filaNumerica, filaCaracter, filaOrdem);
+  ImprimirFilaFloat(filaNumerica);
+  ImprimirFilaChar(filaCaracter);
+  ImprimirFilaFloat(filaOrdem);
 
   return 0;
 }
