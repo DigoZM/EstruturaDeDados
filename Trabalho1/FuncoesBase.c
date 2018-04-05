@@ -236,9 +236,10 @@ int EstaVaziaFloatFila(t_filaFloat * f){
 void ImprimirListaChar(t_listaChar * l){
   t_elementoChar * atual = l->primeiro;
   while(atual != NULL){
-    printf("%c\n", atual->dado);
+    printf("%c ", atual->dado);
     atual = atual->proximo;
   }
+  printf("\n");
 }
 
 void ImprimirFilaChar(t_filaChar * f){
@@ -297,11 +298,86 @@ int ValidaExpressao(t_filaChar * filaCaracterVerificar){
       }
     }
   }
+  if(!EstaVaziaCharPilha(pilhaInicializador))
+  	return FALSE;
 
   return TRUE;
 }
 
-void Menu(t_filaFloat * filaNumerica, t_filaChar * filaCaracter, t_filaFloat * filaOrdem, t_filaChar* expressaoinfixa){
+void InfixaParaPosfixa(t_filaChar* expressaoInfixa, t_filaChar* expressaoPosfixa){
+	t_pilhaChar* pilhaInicializador = CriaPilhaChar();
+	char caracter, caracterDesempilhado;
+
+	ImprimirFilaChar(expressaoInfixa);
+
+	while(!EstaVaziaCharFila(expressaoInfixa)){
+		caracter = DesenfileirarChar(expressaoInfixa);
+		if(caracter >= '0' && caracter <= '9'){
+			EnfileirarChar(caracter, expressaoPosfixa);
+		} 
+
+		else if(caracter == '(' || caracter == ')'){
+
+			if(caracter == '('){
+				EmpilharChar(caracter, pilhaInicializador);
+				printf("abri (\n");
+			}
+			if(caracter == ')'){
+				printf("fechei )\n");
+				do{
+					caracterDesempilhado = DesempilharChar(pilhaInicializador);
+					if(caracterDesempilhado != '('){
+						EnfileirarChar(caracterDesempilhado, expressaoPosfixa);
+					}
+				}while(caracterDesempilhado != '(');
+			}
+			printf("sai\n");
+		}
+
+
+		else if (caracter == '+' || caracter == '-' || caracter == '/' || caracter == '*'){
+
+			printf("ENTROU OPERADOR\n");
+
+			if(EstaVaziaCharPilha(pilhaInicializador)){
+				EmpilharChar(caracter, pilhaInicializador);
+			} else {
+
+				caracterDesempilhado = DesempilharChar(pilhaInicializador);
+				if(caracterDesempilhado == '('){
+					EmpilharChar(caracterDesempilhado, pilhaInicializador);
+					EmpilharChar(caracter, pilhaInicializador);
+
+				} 
+
+				else if(caracterDesempilhado == '*' || caracterDesempilhado == '/'){
+					EnfileirarChar(caracterDesempilhado, expressaoPosfixa);
+					EmpilharChar(caracter, pilhaInicializador);
+
+				} else if (caracter == '+' || caracter == '-'){
+					if (caracterDesempilhado == '*' || caracterDesempilhado == '/'){
+						EmpilharChar(caracterDesempilhado, pilhaInicializador);
+						EmpilharChar(caracter, pilhaInicializador);
+					}
+
+					if (caracterDesempilhado == '+' || caracterDesempilhado == '-'){
+						EnfileirarChar(caracterDesempilhado, expressaoPosfixa);
+						EmpilharChar(caracter, pilhaInicializador);
+					}
+
+				}
+
+			}
+		}
+		
+	}
+	do{
+		caracterDesempilhado = DesempilharChar(pilhaInicializador);
+		EnfileirarChar(caracterDesempilhado, expressaoPosfixa);
+	}while(!EstaVaziaCharPilha(pilhaInicializador));
+}
+
+void Menu(t_filaFloat * filaNumerica, t_filaChar * filaCaracter, t_filaFloat * filaOrdem, t_filaChar* expressaoInfixa){
   char caracter = '0';
   double valorNumerico = 0;
   t_filaChar * filaCaracterVerificar = CriaFilaChar();
@@ -312,8 +388,8 @@ void Menu(t_filaFloat * filaNumerica, t_filaChar * filaCaracter, t_filaFloat * f
     scanf("%c", &caracter);
     
     if(caracter != ' ' && caracter != '\n'){
-      EnfileirarChar(caracter, expressaoinfixa);
-      if(caracter >= '0' && caracter <= '9'){
+      EnfileirarChar(caracter, expressaoInfixa);
+      /*if(caracter >= '0' && caracter <= '9'){
         while(caracter >= '0' && caracter <= '9'){
           valorNumerico = (valorNumerico*10) + caracter - '0';
           scanf("%c", &caracter);
@@ -322,7 +398,7 @@ void Menu(t_filaFloat * filaNumerica, t_filaChar * filaCaracter, t_filaFloat * f
         EnfileirarFloat(valorNumerico, filaNumerica);
         EnfileirarFloat(NUMERO, filaOrdem);
         valorNumerico = 0;
-      } 
+      }*/ 
 
       if(caracter != ' ' && caracter != '\n'){
         EnfileirarChar(caracter, filaCaracterVerificar);
@@ -348,11 +424,16 @@ int main(int argc, char const *argv[])
   t_filaFloat* filaNumerica = CriaFilaFloat();
   t_filaChar* filaCaracter = CriaFilaChar();
   t_filaFloat* filaOrdem = CriaFilaFloat();
+  t_filaChar* expressaoInfixa = CriaFilaChar();
+  t_filaChar* expressaoPosfixa = CriaFilaChar();
 
-  Menu(filaNumerica, filaCaracter, filaOrdem);
-  ImprimirFilaFloat(filaNumerica);
+  Menu(filaNumerica, filaCaracter, filaOrdem, expressaoInfixa);
+  /*ImprimirFilaFloat(filaNumerica);
   ImprimirFilaChar(filaCaracter);
-  ImprimirFilaFloat(filaOrdem);
+  ImprimirFilaFloat(filaOrdem);*/
+  InfixaParaPosfixa(expressaoInfixa, expressaoPosfixa);
+  ImprimirFilaChar(expressaoPosfixa);
+
 
   return 0;
 }
