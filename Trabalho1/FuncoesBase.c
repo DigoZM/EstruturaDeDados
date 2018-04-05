@@ -273,11 +273,18 @@ void ImprimirPilhaFloat(t_pilhaFloat * p){
 int ValidaExpressao(t_filaChar * filaCaracterVerificar){
   char caracter;
   t_pilhaChar * pilhaInicializador = CriaPilhaChar();
+  int i = 0;
 
   while(!EstaVaziaCharFila(filaCaracterVerificar)){
     caracter = DesenfileirarChar(filaCaracterVerificar);
+    if(i == 1){
+      i = 0;
+      if(caracter == ')')
+        return FALSE;
+    }
     if(caracter == '('){
       EmpilharChar(caracter, pilhaInicializador);
+      i = 1;
     }
     if(caracter == ')'){
       if(EstaVaziaCharPilha(pilhaInicializador)){
@@ -285,7 +292,7 @@ int ValidaExpressao(t_filaChar * filaCaracterVerificar){
       } else{
         caracter = DesempilharChar(pilhaInicializador);
         if(caracter != '('){
-          return FALSE;
+           return FALSE;
         }
       }
     }
@@ -294,24 +301,29 @@ int ValidaExpressao(t_filaChar * filaCaracterVerificar){
   return TRUE;
 }
 
-void Menu(t_filaFloat * filaNumerica, t_filaChar * filaCaracter, t_filaFloat * filaOrdem){
+void Menu(t_filaFloat * filaNumerica, t_filaChar * filaCaracter, t_filaFloat * filaOrdem, t_filaChar* expressaoinfixa){
   char caracter = '0';
   double valorNumerico = 0;
   t_filaChar * filaCaracterVerificar = CriaFilaChar();
 
+
   printf("Digite a expressão que deseja calcular:\n");
   do{
     scanf("%c", &caracter);
+    
     if(caracter != ' ' && caracter != '\n'){
+      EnfileirarChar(caracter, expressaoinfixa);
       if(caracter >= '0' && caracter <= '9'){
         while(caracter >= '0' && caracter <= '9'){
           valorNumerico = (valorNumerico*10) + caracter - '0';
           scanf("%c", &caracter);
         }
+
         EnfileirarFloat(valorNumerico, filaNumerica);
         EnfileirarFloat(NUMERO, filaOrdem);
         valorNumerico = 0;
       } 
+
       if(caracter != ' ' && caracter != '\n'){
         EnfileirarChar(caracter, filaCaracterVerificar);
         EnfileirarChar(caracter, filaCaracter);
@@ -323,6 +335,12 @@ void Menu(t_filaFloat * filaNumerica, t_filaChar * filaCaracter, t_filaFloat * f
     printf("Expressao Válida\n");
   } else {
     printf("Expressao não válida\n");
+    while(EstaVaziaFloatFila(filaOrdem) && EstaVaziaFloatFila(filaNumerica) && EstaVaziaCharFila(filaCaracter)){
+      DesenfileirarChar(filaCaracter);
+      DesenfileirarFloat(filaOrdem);
+      DesenfileirarFloat(filaNumerica);
+    }
+
   }
 }
 int main(int argc, char const *argv[])
