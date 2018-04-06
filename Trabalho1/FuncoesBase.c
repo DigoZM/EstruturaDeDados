@@ -255,9 +255,10 @@ void ImprimirPilhaChar(t_pilhaChar * p){
 void ImprimirListaFloat(t_listaFloat * l){
   t_elementoFloat * atual = l->primeiro;
   while(atual != NULL){
-    printf("%.2lf\n", atual->dado);
+    printf("%.2lf ", atual->dado);
     atual = atual->proximo;
   }
+  printf("\n");
 }
 
 void ImprimirFilaFloat(t_filaFloat * f){
@@ -270,6 +271,48 @@ void ImprimirPilhaFloat(t_pilhaFloat * p){
   printf("Fim da Pilha de numero\n");
 }
 //FIM FUNCOES PARA DEBUG DO CODIGO
+
+int EhNumero(char caracter){
+	if (caracter >= '0' && caracter <= '9')
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+int ProximoNaLista(t_listaChar* l){
+	t_elementoChar * atual = l->primeiro;
+
+	if (EstaVaziaChar(l))
+	{
+		printf("ta vazia tio\n");
+		return FALSE;
+	}
+	printf("%c\n", atual->dado);
+
+	if(EhNumero(atual->dado)){
+		return NUMERO;
+	}
+	return CARACTER;
+}
+
+int ProximoNaFila(t_filaChar* f){
+	printf("entrei\n");
+	return ProximoNaLista(f->l);	
+}
+
+double DesenfileirarNumero(t_filaChar* f, char caracter){
+	double valorNumerico = 0;
+
+	valorNumerico = (valorNumerico*10) + caracter - '0';
+
+	while(ProximoNaFila(f) == NUMERO){
+        valorNumerico = (valorNumerico*10) + caracter - '0';
+        caracter = DesenfileirarChar(f);
+    }
+   // EnfileirarChar(caracter, expressaoPosfixa);
+    return valorNumerico;
+}
 
 int ValidaExpressao(t_filaChar * filaCaracterVerificar){
   char caracter;
@@ -304,16 +347,20 @@ int ValidaExpressao(t_filaChar * filaCaracterVerificar){
   return TRUE;
 }
 
-void InfixaParaPosfixa(t_filaChar* expressaoInfixa, t_filaChar* expressaoPosfixa){
+void InfixaParaPosfixa(t_filaChar* expressaoInfixa, t_filaChar* expressaoPosfixa, t_filaChar* expressaoPosfixaChar, t_filaFloat* expressaoPosfixaFloat, t_filaFloat* expressaoPosfixaOrdem){
 	t_pilhaChar* pilhaInicializador = CriaPilhaChar();
 	char caracter, caracterDesempilhado;
+	double valorNumerico;
 
 	ImprimirFilaChar(expressaoInfixa);
 
 	while(!EstaVaziaCharFila(expressaoInfixa)){
 		caracter = DesenfileirarChar(expressaoInfixa);
 		if(caracter >= '0' && caracter <= '9'){
-			EnfileirarChar(caracter, expressaoPosfixa);
+			valorNumerico = DesenfileirarNumero(expressaoInfixa, caracter);
+			EnfileirarFloat(valorNumerico, expressaoPosfixaFloat);
+			EnfileirarFloat(NUMERO, expressaoPosfixaOrdem);
+
 		} 
 		else if(caracter == '(' || caracter == ')'){
 
@@ -326,7 +373,8 @@ void InfixaParaPosfixa(t_filaChar* expressaoInfixa, t_filaChar* expressaoPosfixa
 				do{
 					caracterDesempilhado = DesempilharChar(pilhaInicializador);
 					if(caracterDesempilhado != '('){
-						EnfileirarChar(caracterDesempilhado, expressaoPosfixa);
+						EnfileirarChar(caracterDesempilhado, expressaoPosfixaChar);
+						EnfileirarFloat(CARACTER, expressaoPosfixaOrdem);
 					}
 				}while(caracterDesempilhado != '(');
 			}
@@ -343,7 +391,8 @@ void InfixaParaPosfixa(t_filaChar* expressaoInfixa, t_filaChar* expressaoPosfixa
 					EmpilharChar(caracter, pilhaInicializador);
 				} 
 				else if(caracterDesempilhado == '*' || caracterDesempilhado == '/'){
-					EnfileirarChar(caracterDesempilhado, expressaoPosfixa);
+					EnfileirarChar(caracterDesempilhado, expressaoPosfixaChar);
+					EnfileirarFloat(CARACTER, expressaoPosfixaOrdem);
 					EmpilharChar(caracter, pilhaInicializador);
 				} else if (caracter == '+' || caracter == '-'){
 					if (caracterDesempilhado == '*' || caracterDesempilhado == '/'){
@@ -351,7 +400,8 @@ void InfixaParaPosfixa(t_filaChar* expressaoInfixa, t_filaChar* expressaoPosfixa
 						EmpilharChar(caracter, pilhaInicializador);
 					}
 					if (caracterDesempilhado == '+' || caracterDesempilhado == '-'){
-						EnfileirarChar(caracterDesempilhado, expressaoPosfixa);
+						EnfileirarChar(caracterDesempilhado, expressaoPosfixaChar);
+						EnfileirarFloat(CARACTER, expressaoPosfixaOrdem);
 						EmpilharChar(caracter, pilhaInicializador);
 					}
 				}
@@ -360,52 +410,67 @@ void InfixaParaPosfixa(t_filaChar* expressaoInfixa, t_filaChar* expressaoPosfixa
 	}
 	do{
 		caracterDesempilhado = DesempilharChar(pilhaInicializador);
-		EnfileirarChar(caracterDesempilhado, expressaoPosfixa);
+		//if(EhNumero(caracterDesempilhado)){
+		//	EnfileirarFloat(caracterDesempilhado, expressaoPosfixaFloat);
+		//	EnfileirarFloat(NUMERO, expressaoPosfixaOrdem);
+		//} else {
+			EnfileirarChar(caracterDesempilhado, expressaoPosfixaChar);
+			EnfileirarFloat(CARACTER, expressaoPosfixaOrdem);
+		//}
 	}while(!EstaVaziaCharPilha(pilhaInicializador));
 }
 
 
 
-int EhNumero(char caracter){
-	if (caracter >= '0' && caracter <= '9')
-	{
-		return TRUE;
-	}
-	return FALSE;
-}
-
-int ProximoNaLista(t_listaChar* l){
-	t_elementoChar * atual = l->primeiro;
-	printf("%c\n", atual->dado);
-	if(EhNumero(atual->dado)){
-		return NUMERO;
-	}
-	return CARACTER;
-}
-
-int ProximoNaFila(t_filaChar* f){
-	printf("entrei\n");
-	return ProximoNaLista(f->l);	
-}
-
-double DesenfileirarNumero(t_filaChar* expressaoPosfixa, char caracter){
-	double valorNumerico = 0;
-
-	do{
-        valorNumerico = (valorNumerico*10) + caracter - '0';
-        caracter = DesenfileirarChar(expressaoPosfixa);
-    }while(ProximoNaFila(expressaoPosfixa) == NUMERO);
-   // EnfileirarChar(caracter, expressaoPosfixa);
-    return valorNumerico;
-}
-
-double CalculaPosfixa(t_filaChar* expressaoPosfixa){
+double CalculaPosfixa(t_filaChar* expressaoPosfixaChar, t_filaFloat* expressaoPosfixaFloat, t_filaFloat* expressaoPosfixaOrdem){
 	t_pilhaFloat* pilhaInicializador = CriaPilhaFloat();
-	char caracter, caracterProximo;
-	double valorNumerico, operando1, operando2;
+	char caracterDenfileirado, caracterProximo;
+	double valorNumerico, numeroDesenfileirado, operando1, operando2, filaOrdem;
+	int filaOrdemInt;
 
-	while(!EstaVaziaCharFila(expressaoPosfixa)){
-		caracter = DesenfileirarChar(expressaoPosfixa);
+	filaOrdem = DesenfileirarFloat(expressaoPosfixaOrdem);
+	filaOrdemInt = filaOrdem;
+	printf("eh %d\n", filaOrdemInt);
+	switch (filaOrdemInt){
+		case NUMERO:
+			numeroDesenfileirado = DesenfileirarFloat(expressaoPosfixaFloat);
+			break;
+		case CARACTER:
+			caracterDenfileirado = DesenfileirarChar(expressaoPosfixaChar);
+			break;
+	}
+
+	while(!EstaVaziaCharFila(expressaoPosfixaChar) || !EstaVaziaFloatFila(expressaoPosfixaFloat)){
+		printf("to no while\n");
+		filaOrdem = DesenfileirarFloat(expressaoPosfixaOrdem);
+		filaOrdemInt = filaOrdem;
+		switch (filaOrdemInt){
+			case NUMERO:
+				EmpilharFloat(numeroDesenfileirado, pilhaInicializador);
+				numeroDesenfileirado = DesenfileirarFloat(expressaoPosfixaFloat);
+				break;
+			case CARACTER:
+				caracterDenfileirado = DesenfileirarChar(expressaoPosfixaChar);
+				operando1 = DesempilharFloat(pilhaInicializador);
+				operando2 = numeroDesenfileirado;
+
+				if(caracterDenfileirado == '+'){
+	        		valorNumerico = operando1 + operando2;
+	        	}
+	        	if(caracterDenfileirado == '-'){
+	        		valorNumerico = operando1 - operando2;
+	        	}
+	        	if(caracterDenfileirado == '*'){
+	        		valorNumerico = operando1 * operando2;
+	        	}
+	        	if(caracterDenfileirado == '/'){
+	        		valorNumerico = operando1 / operando2;
+	        	}
+	        	EmpilharFloat(valorNumerico, pilhaInicializador);
+				break;
+		}	
+
+		/*caracter = DesenfileirarChar(expressaoPosfixa);
 		if(EhNumero(caracter)){
         	valorNumerico = DesenfileirarNumero(expressaoPosfixa, caracter);
         	if(ProximoNaFila(expressaoPosfixa) == NUMERO){
@@ -428,7 +493,7 @@ double CalculaPosfixa(t_filaChar* expressaoPosfixa){
 	        	}
 	        	EmpilharFloat(valorNumerico, pilhaInicializador);
 	        }
-        }
+        }*/
 	}
 
 	return DesempilharFloat(pilhaInicializador);
@@ -483,15 +548,20 @@ int main(int argc, char const *argv[])
   t_filaFloat* filaOrdem = CriaFilaFloat();
   t_filaChar* expressaoInfixa = CriaFilaChar();
   t_filaChar* expressaoPosfixa = CriaFilaChar();
+  t_filaChar* expressaoPosfixaChar = CriaFilaChar();
+  t_filaFloat* expressaoPosfixaFloat = CriaFilaFloat();
+  t_filaFloat* expressaoPosfixaOrdem = CriaFilaFloat();
+
   double resultado;
 
   Menu(filaNumerica, filaCaracter, filaOrdem, expressaoInfixa);
-  /*ImprimirFilaFloat(filaNumerica);
-  ImprimirFilaChar(filaCaracter);
-  ImprimirFilaFloat(filaOrdem);*/
-  InfixaParaPosfixa(expressaoInfixa, expressaoPosfixa);
-  ImprimirFilaChar(expressaoPosfixa);
-  resultado = CalculaPosfixa(expressaoPosfixa);
+  
+  InfixaParaPosfixa(expressaoInfixa, expressaoPosfixa, expressaoPosfixaChar, expressaoPosfixaFloat, expressaoPosfixaOrdem);
+  //ImprimirFilaChar(expressaoPosfixa);
+  ImprimirFilaFloat(expressaoPosfixaFloat);
+  ImprimirFilaChar(expressaoPosfixaChar);
+  ImprimirFilaFloat(expressaoPosfixaOrdem);
+  resultado = CalculaPosfixa(expressaoPosfixaChar, expressaoPosfixaFloat, expressaoPosfixaOrdem);
   printf("resultado: %lf\n", resultado);
 
   return 0;
