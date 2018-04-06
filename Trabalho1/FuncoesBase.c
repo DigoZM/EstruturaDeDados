@@ -298,9 +298,9 @@ int ValidaExpressao(t_filaChar * filaCaracterVerificar){
       }
     }
   }
-  if(!EstaVaziaCharPilha(pilhaInicializador))
+  if(!EstaVaziaCharPilha(pilhaInicializador)){
   	return FALSE;
-
+  }
   return TRUE;
 }
 
@@ -315,15 +315,14 @@ void InfixaParaPosfixa(t_filaChar* expressaoInfixa, t_filaChar* expressaoPosfixa
 		if(caracter >= '0' && caracter <= '9'){
 			EnfileirarChar(caracter, expressaoPosfixa);
 		} 
-
 		else if(caracter == '(' || caracter == ')'){
 
 			if(caracter == '('){
 				EmpilharChar(caracter, pilhaInicializador);
-				printf("abri (\n");
+				//printf("abri (\n");
 			}
 			if(caracter == ')'){
-				printf("fechei )\n");
+				//printf("fechei )\n");
 				do{
 					caracterDesempilhado = DesempilharChar(pilhaInicializador);
 					if(caracterDesempilhado != '('){
@@ -331,50 +330,108 @@ void InfixaParaPosfixa(t_filaChar* expressaoInfixa, t_filaChar* expressaoPosfixa
 					}
 				}while(caracterDesempilhado != '(');
 			}
-			printf("sai\n");
+			//printf("sai\n");
 		}
-
-
 		else if (caracter == '+' || caracter == '-' || caracter == '/' || caracter == '*'){
-
-			printf("ENTROU OPERADOR\n");
-
+			//printf("ENTROU OPERADOR\n");
 			if(EstaVaziaCharPilha(pilhaInicializador)){
 				EmpilharChar(caracter, pilhaInicializador);
 			} else {
-
 				caracterDesempilhado = DesempilharChar(pilhaInicializador);
 				if(caracterDesempilhado == '('){
 					EmpilharChar(caracterDesempilhado, pilhaInicializador);
 					EmpilharChar(caracter, pilhaInicializador);
-
 				} 
-
 				else if(caracterDesempilhado == '*' || caracterDesempilhado == '/'){
 					EnfileirarChar(caracterDesempilhado, expressaoPosfixa);
 					EmpilharChar(caracter, pilhaInicializador);
-
 				} else if (caracter == '+' || caracter == '-'){
 					if (caracterDesempilhado == '*' || caracterDesempilhado == '/'){
 						EmpilharChar(caracterDesempilhado, pilhaInicializador);
 						EmpilharChar(caracter, pilhaInicializador);
 					}
-
 					if (caracterDesempilhado == '+' || caracterDesempilhado == '-'){
 						EnfileirarChar(caracterDesempilhado, expressaoPosfixa);
 						EmpilharChar(caracter, pilhaInicializador);
 					}
-
 				}
-
 			}
-		}
-		
+		}		
 	}
 	do{
 		caracterDesempilhado = DesempilharChar(pilhaInicializador);
 		EnfileirarChar(caracterDesempilhado, expressaoPosfixa);
 	}while(!EstaVaziaCharPilha(pilhaInicializador));
+}
+
+
+
+int EhNumero(char caracter){
+	if (caracter >= '0' && caracter <= '9')
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+int ProximoNaLista(t_listaChar* l){
+	t_elementoChar * atual = l->primeiro;
+	printf("%c\n", atual->dado);
+	if(EhNumero(atual->dado)){
+		return NUMERO;
+	}
+	return CARACTER;
+}
+
+int ProximoNaFila(t_filaChar* f){
+	printf("entrei\n");
+	return ProximoNaLista(f->l);	
+}
+
+double DesenfileirarNumero(t_filaChar* expressaoPosfixa, char caracter){
+	double valorNumerico = 0;
+
+	do{
+        valorNumerico = (valorNumerico*10) + caracter - '0';
+        caracter = DesenfileirarChar(expressaoPosfixa);
+    }while(ProximoNaFila(expressaoPosfixa) == NUMERO);
+   // EnfileirarChar(caracter, expressaoPosfixa);
+    return valorNumerico;
+}
+
+double CalculaPosfixa(t_filaChar* expressaoPosfixa){
+	t_pilhaFloat* pilhaInicializador = CriaPilhaFloat();
+	char caracter, caracterProximo;
+	double valorNumerico, operando1, operando2;
+
+	while(!EstaVaziaCharFila(expressaoPosfixa)){
+		caracter = DesenfileirarChar(expressaoPosfixa);
+		if(EhNumero(caracter)){
+        	valorNumerico = DesenfileirarNumero(expressaoPosfixa, caracter);
+        	if(ProximoNaFila(expressaoPosfixa) == NUMERO){
+	        	EmpilharFloat(valorNumerico, pilhaInicializador);
+	        	//EnfileirarChar(caracterProximo, expressaoPosfixa);
+	        } else {
+	        	operando2 = DesempilharFloat(pilhaInicializador);
+	        	operando1 = valorNumerico;
+	        	if(caracterProximo == '+'){
+	        		valorNumerico = operando1 + operando2;
+	        	}
+	        	if(caracterProximo == '-'){
+	        		valorNumerico = operando1 - operando2;
+	        	}
+	        	if(caracterProximo == '*'){
+	        		valorNumerico = operando1 * operando2;
+	        	}
+	        	if(caracterProximo == '/'){
+	        		valorNumerico = operando1 / operando2;
+	        	}
+	        	EmpilharFloat(valorNumerico, pilhaInicializador);
+	        }
+        }
+	}
+
+	return DesempilharFloat(pilhaInicializador);
 }
 
 void Menu(t_filaFloat * filaNumerica, t_filaChar * filaCaracter, t_filaFloat * filaOrdem, t_filaChar* expressaoInfixa){
@@ -426,6 +483,7 @@ int main(int argc, char const *argv[])
   t_filaFloat* filaOrdem = CriaFilaFloat();
   t_filaChar* expressaoInfixa = CriaFilaChar();
   t_filaChar* expressaoPosfixa = CriaFilaChar();
+  double resultado;
 
   Menu(filaNumerica, filaCaracter, filaOrdem, expressaoInfixa);
   /*ImprimirFilaFloat(filaNumerica);
@@ -433,7 +491,8 @@ int main(int argc, char const *argv[])
   ImprimirFilaFloat(filaOrdem);*/
   InfixaParaPosfixa(expressaoInfixa, expressaoPosfixa);
   ImprimirFilaChar(expressaoPosfixa);
-
+  resultado = CalculaPosfixa(expressaoPosfixa);
+  printf("resultado: %lf\n", resultado);
 
   return 0;
 }
