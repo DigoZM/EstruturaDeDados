@@ -307,8 +307,9 @@ double DesenfileirarNumero(t_filaChar* f, char caracter){
 	valorNumerico = (valorNumerico*10) + caracter - '0';
 
 	while(ProximoNaFila(f) == NUMERO){
+		caracter = DesenfileirarChar(f);
         valorNumerico = (valorNumerico*10) + caracter - '0';
-        caracter = DesenfileirarChar(f);
+        
     }
    // EnfileirarChar(caracter, expressaoPosfixa);
     return valorNumerico;
@@ -428,7 +429,7 @@ double CalculaPosfixa(t_filaChar* expressaoPosfixaChar, t_filaFloat* expressaoPo
 	double valorNumerico, numeroDesenfileirado, operando1, operando2, filaOrdem;
 	int filaOrdemInt;
 
-	filaOrdem = DesenfileirarFloat(expressaoPosfixaOrdem);
+	/*filaOrdem = DesenfileirarFloat(expressaoPosfixaOrdem);
 	filaOrdemInt = filaOrdem;
 	printf("eh %d\n", filaOrdemInt);
 	switch (filaOrdemInt){
@@ -438,7 +439,7 @@ double CalculaPosfixa(t_filaChar* expressaoPosfixaChar, t_filaFloat* expressaoPo
 		case CARACTER:
 			caracterDenfileirado = DesenfileirarChar(expressaoPosfixaChar);
 			break;
-	}
+	}*/
 
 	while(!EstaVaziaCharFila(expressaoPosfixaChar) || !EstaVaziaFloatFila(expressaoPosfixaFloat)){
 		printf("to no while\n");
@@ -446,13 +447,14 @@ double CalculaPosfixa(t_filaChar* expressaoPosfixaChar, t_filaFloat* expressaoPo
 		filaOrdemInt = filaOrdem;
 		switch (filaOrdemInt){
 			case NUMERO:
-				EmpilharFloat(numeroDesenfileirado, pilhaInicializador);
 				numeroDesenfileirado = DesenfileirarFloat(expressaoPosfixaFloat);
+				EmpilharFloat(numeroDesenfileirado, pilhaInicializador);
+				//numeroDesenfileirado = DesenfileirarFloat(expressaoPosfixaFloat);
 				break;
 			case CARACTER:
 				caracterDenfileirado = DesenfileirarChar(expressaoPosfixaChar);
+				operando2 = DesempilharFloat(pilhaInicializador);
 				operando1 = DesempilharFloat(pilhaInicializador);
-				operando2 = numeroDesenfileirado;
 
 				if(caracterDenfileirado == '+'){
 	        		valorNumerico = operando1 + operando2;
@@ -464,6 +466,10 @@ double CalculaPosfixa(t_filaChar* expressaoPosfixaChar, t_filaFloat* expressaoPo
 	        		valorNumerico = operando1 * operando2;
 	        	}
 	        	if(caracterDenfileirado == '/'){
+	        		if (operando2 == 0)
+	        		{
+	        			printf("Divisão por 0, expressão não válida\n");
+	        		}
 	        		valorNumerico = operando1 / operando2;
 	        	}
 	        	EmpilharFloat(valorNumerico, pilhaInicializador);
