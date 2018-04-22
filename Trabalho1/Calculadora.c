@@ -310,6 +310,22 @@ double DesenfileirarNumero(t_filaChar* f, char caracter){
     return valorNumerico;
 }
 
+int PrioridadeMaiorIgual(char caracter, char caracterDesempilhado){
+	if (caracter == '+' || caracter == '='){
+
+		return TRUE;
+	}
+	if (caracter == '*' || caracter == '/')
+	{
+		if (caracterDesempilhado == '*' || caracterDesempilhado == '/'){
+			return TRUE;
+		}
+		else{
+			return FALSE;
+		}
+	}
+}
+
 int ValidaExpressao(t_filaChar * filaCaracterVerificar){
   char caracter;
   t_pilhaChar * pilhaInicializador = CriaPilhaChar();
@@ -343,7 +359,8 @@ int ValidaExpressao(t_filaChar * filaCaracterVerificar){
   return TRUE;
 }
 
-void InfixaParaPosfixa(t_filaChar* expressaoInfixa, t_filaChar* expressaoPosfixaChar, t_filaFloat* expressaoPosfixaFloat, t_filaFloat* expressaoPosfixaOrdem){
+void InfixaParaPosfixa(t_filaChar* expressaoInfixa,t_filaChar* expressaoPosfixaChar, \
+ t_filaFloat* expressaoPosfixaFloat, t_filaFloat* expressaoPosfixaOrdem){
 	t_pilhaChar* pilhaInicializador = CriaPilhaChar();
 	char caracter, caracterDesempilhado;
 	double valorNumerico;
@@ -375,34 +392,34 @@ void InfixaParaPosfixa(t_filaChar* expressaoInfixa, t_filaChar* expressaoPosfixa
 			if(EstaVaziaCharPilha(pilhaInicializador)){
 				EmpilharChar(caracter, pilhaInicializador);
 			} else {
-				caracterDesempilhado = DesempilharChar(pilhaInicializador);
-				if(caracterDesempilhado == '('){
-					EmpilharChar(caracterDesempilhado, pilhaInicializador);
-					EmpilharChar(caracter, pilhaInicializador);
-				} 
-				else if(caracterDesempilhado == '*' || caracterDesempilhado == '/'){
-					EnfileirarChar(caracterDesempilhado, expressaoPosfixaChar);
-					EnfileirarFloat(CARACTER, expressaoPosfixaOrdem);
-					EmpilharChar(caracter, pilhaInicializador);
-				} else if (caracter == '+' || caracter == '-'){
-					if (caracterDesempilhado == '*' || caracterDesempilhado == '/'){
+				do{
+					caracterDesempilhado = DesempilharChar(pilhaInicializador);
+					if(caracterDesempilhado == '('){
 						EmpilharChar(caracterDesempilhado, pilhaInicializador);
-						EmpilharChar(caracter, pilhaInicializador);
-					}
-					if (caracterDesempilhado == '+' || caracterDesempilhado == '-'){
+						break;
+					} 
+					else if(caracterDesempilhado == '*' || caracterDesempilhado == '/'){
 						EnfileirarChar(caracterDesempilhado, expressaoPosfixaChar);
 						EnfileirarFloat(CARACTER, expressaoPosfixaOrdem);
-						EmpilharChar(caracter, pilhaInicializador);
+					} else if (caracterDesempilhado == '+' || caracterDesempilhado == '-'){
+						if (caracter == '*' || caracter == '/'){
+							EmpilharChar(caracterDesempilhado, pilhaInicializador);
+						}
+						if (caracter == '+' || caracter == '-'){
+							EnfileirarChar(caracterDesempilhado, expressaoPosfixaChar);
+							EnfileirarFloat(CARACTER, expressaoPosfixaOrdem);
+						}
 					}
-				}
+				}while(!EstaVaziaCharPilha(pilhaInicializador) && PrioridadeMaiorIgual(caracter, caracterDesempilhado));
+				EmpilharChar(caracter, pilhaInicializador);
 			}
 		}		
 	}
-	do{
+	while(!EstaVaziaCharPilha(pilhaInicializador)){
 		caracterDesempilhado = DesempilharChar(pilhaInicializador);
-			EnfileirarChar(caracterDesempilhado, expressaoPosfixaChar);
-			EnfileirarFloat(CARACTER, expressaoPosfixaOrdem);
-	}while(!EstaVaziaCharPilha(pilhaInicializador));
+		EnfileirarChar(caracterDesempilhado, expressaoPosfixaChar);
+		EnfileirarFloat(CARACTER, expressaoPosfixaOrdem);
+	}
 }
 
 
@@ -424,7 +441,11 @@ double CalculaPosfixa(t_filaChar* expressaoPosfixaChar, t_filaFloat* expressaoPo
 			case CARACTER:
 				caracterDenfileirado = DesenfileirarChar(expressaoPosfixaChar);
 				operando2 = DesempilharFloat(pilhaInicializador);
-				operando1 = DesempilharFloat(pilhaInicializador);
+				if (EstaVaziaFloatPilha(pilhaInicializador)){
+					operando1 = 0;
+				} else {
+					operando1 = DesempilharFloat(pilhaInicializador);
+				}
 
 				if(caracterDenfileirado == '+'){
 	        		valorNumerico = operando1 + operando2;
@@ -439,6 +460,7 @@ double CalculaPosfixa(t_filaChar* expressaoPosfixaChar, t_filaFloat* expressaoPo
 	        		if (operando2 == 0)
 	        		{
 	        			printf("Divisão por 0, expressão não válida\n");
+	        			return 0;
 	        		}
 	        		valorNumerico = operando1 / operando2;
 	        	}
@@ -446,11 +468,10 @@ double CalculaPosfixa(t_filaChar* expressaoPosfixaChar, t_filaFloat* expressaoPo
 				break;
 		}	
 	}
-
 	return DesempilharFloat(pilhaInicializador);
 }
 
-void Menu(t_filaChar* expressaoInfixa){
+int Menu(t_filaChar* expressaoInfixa){
   char caracter = '0';
   double valorNumerico = 0;
   t_filaChar * filaCaracterVerificar = CriaFilaChar();
@@ -469,29 +490,28 @@ void Menu(t_filaChar* expressaoInfixa){
     }
   }while(caracter != '\n');
   if(ValidaExpressao(filaCaracterVerificar)){
-    printf("Expressao Válida\n");
+    printf("Expressão Válida\n");
+    return TRUE;
   } else {
-    printf("Expressao não válida\n");
+    printf("Expressão não válida\n");
     while(EstaVaziaCharFila(expressaoInfixa)){
       DesenfileirarChar(expressaoInfixa);
     }
-
+    return FALSE;
   }
 }
 int main(int argc, char const *argv[])
 {
-  t_filaChar* expressaoInfixa = CriaFilaChar();
-  t_filaChar* expressaoPosfixaChar = CriaFilaChar();
-  t_filaFloat* expressaoPosfixaFloat = CriaFilaFloat();
-  t_filaFloat* expressaoPosfixaOrdem = CriaFilaFloat();
+	t_filaChar* expressaoInfixa = CriaFilaChar();
+	t_filaChar* expressaoPosfixaChar = CriaFilaChar();
+	t_filaFloat* expressaoPosfixaFloat = CriaFilaFloat();
+	t_filaFloat* expressaoPosfixaOrdem = CriaFilaFloat();
+	double resultado;
 
-  double resultado;
-
-  Menu(expressaoInfixa);
-  
-  InfixaParaPosfixa(expressaoInfixa, expressaoPosfixaChar, expressaoPosfixaFloat, expressaoPosfixaOrdem);
-  resultado = CalculaPosfixa(expressaoPosfixaChar, expressaoPosfixaFloat, expressaoPosfixaOrdem);
-  printf("Resultado: %.2lf\n", resultado);
-
-  return 0;
+	if (Menu(expressaoInfixa)){
+  		InfixaParaPosfixa(expressaoInfixa, expressaoPosfixaChar, expressaoPosfixaFloat, expressaoPosfixaOrdem);
+		resultado = CalculaPosfixa(expressaoPosfixaChar, expressaoPosfixaFloat, expressaoPosfixaOrdem);
+		printf("Resultado: %.2lf\n", resultado);
+	}
+	return 0;
 }
