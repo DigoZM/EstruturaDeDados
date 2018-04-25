@@ -1,3 +1,10 @@
+/*TRABALHO 1 - ESTRUTURA DE DADOS
+Avaliacao de Expressoes Aritmeticas
+Professor: Eduardo A. P. Alchieri
+Pedro Pereira Nunes - 17/0020738
+Rodrigo Zamagno Medeiros - 17/0021726
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 
