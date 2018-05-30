@@ -21,27 +21,6 @@ t_no * criarNo(char dado){
    return n;
 }
 
-/*int inserir(t_no * raiz, char dado){
-    if(raiz == NULL){
-       return -1;
-    }
-    if(raiz->dado > dado){//Esquerda
-       if(raiz->traco == NULL){
-    raiz->traco = criarNo(dado);
-   
-       }else{
-          return inserir(raiz->traco, dado);
-       }
-    }else if(raiz->dado < dado){//Direita
-  if(raiz->ponto == NULL){
-    raiz->ponto = criarNo(dado);
-       }else{
-          return inserir(raiz->ponto, dado);
-       }
-    }
-    return -1;
-}*/
-
 // FIM FUNÇÕES BASE DE UMA ÁRVORE
 
 //INÍCIO FUNÇÕES BASE DE LISTAS E FILAS
@@ -89,28 +68,6 @@ void insereFim(char letra, char code[], t_lista * l){
   }
   l->fim = nu;
 }
-
-/*char removeInicio(t_lista * l){
-  if(estaVazia(l)){
-    return -1;
-  }
-  int tmp = l->inicio->dado;
-  t_elemento * removido = l->inicio;
-  l->inicio = l->inicio->proximo;
-  if(l->inicio == NULL){
-    l->fim = NULL;
-  }
-  free(removido);
-  return tmp;
-}
-*/
-/*void insereFila(char letra, char code[], t_lista * f){
-  insereFim(letra, code, f);
-}*/
-
-/*char removeFila(t_lista * f){
-  return removeInicio(f);
-}*/
 
 //FIM FUNÇÕES BASE DE LISTAS E FILAS
 
@@ -235,27 +192,15 @@ t_lista * CriarListaCodigo(t_lista * listaCodigo){
   return listaCodigo;
 }
 
-bool ComparaString(char texto[], char code[]){
-  int i, j = 0;
-  for (i = 0; texto[i] != '\0' && code [i] != '\0'; i++){
-    if(texto[i] == code[i]){
-      j++;
-    }
-  }
-  if ((i == j) && (texto[i] == code[i])){
-    return true;
-  }
-  return false;
-}
-
 char ProcuraLetraLista(char texto[], t_lista * listaCodigo){
   int i = 0;
   t_elemento * atual = listaCodigo->inicio;
   while(atual != NULL && strcmp(texto, atual->codigo)){
     atual = atual->proximo;
   }
- // printf("   [ texto: %s e codigo: %s letra: %c ]\n",texto, atual->codigo, atual->simbolo);
-  //printf("\n");
+  if (atual == NULL){
+  	return VAZIO;
+  }
   return atual->simbolo;
 }
 
@@ -279,12 +224,8 @@ void DecifrarMensagemLista(t_lista * listaCodigo){
         caracter = getc(arquivo);
         i++;
       }
-      /*if (caracter == EOF){
-        break;
-      }*/
       texto[i] = '\0';
       if (texto[0] != '\0'){
-        //printf("entrei\n");
         simboloCorrespondente = ProcuraLetraLista(texto, listaCodigo);
         printf("%c", simboloCorrespondente);
       }
@@ -302,20 +243,17 @@ void DecifrarMensagemLista(t_lista * listaCodigo){
 }
 
 int main(){
-  int t_inicial, t_final, tempo_lista, tempo_arvore, n, i;
+  int t_inicial, t_final, tempo_lista, tempo_arvore;
   struct timespec start, stop;
   t_no * arvoreCodigo = criarNo(0);
   CriarArvore(arvoreCodigo);
   t_lista * listaCodigo = criarLista(listaCodigo);
   listaCodigo = CriarListaCodigo(listaCodigo);
 
-  scanf("%d", &n);
-  
+    
   clock_gettime(CLOCK_REALTIME, &start);
-  t_inicial = start.tv_nsec;
-  for (i = 0; i < n; i++){
-    DecifrarMensagemArvore(arvoreCodigo);
-  }
+  t_inicial = start.tv_nsec;  
+  DecifrarMensagemArvore(arvoreCodigo);
   clock_gettime(CLOCK_REALTIME, &stop);
   t_final = stop.tv_nsec;
   tempo_arvore = t_final - t_inicial;
@@ -323,10 +261,7 @@ int main(){
 
   clock_gettime(CLOCK_REALTIME, &start);
   t_inicial = start.tv_nsec;
-  for (int i = 0; i < n; ++i)
-  {
-    DecifrarMensagemLista(listaCodigo);
-  }
+  DecifrarMensagemLista(listaCodigo);
   clock_gettime(CLOCK_REALTIME, &stop);
   t_final = stop.tv_nsec;
   tempo_lista = t_final - t_inicial;
